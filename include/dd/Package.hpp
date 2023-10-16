@@ -648,19 +648,18 @@ public:
   }
 
   // build matrix representation for a single gate on an n-qubit circuit
-  mEdge makeGateDD(const std::array<ComplexValue, NEDGE>& mat,
-                   const std::size_t n, const qc::Qubit target,
-                   const std::size_t start = 0) {
+  mEdge makeGateDD(const GateMatrix& mat, const std::size_t n,
+                   const qc::Qubit target, const std::size_t start = 0) {
     return makeGateDD(mat, n, qc::Controls{}, target, start);
   }
-  mEdge makeGateDD(const std::array<ComplexValue, NEDGE>& mat,
-                   const std::size_t n, const qc::Control& control,
-                   const qc::Qubit target, const std::size_t start = 0) {
+  mEdge makeGateDD(const GateMatrix& mat, const std::size_t n,
+                   const qc::Control& control, const qc::Qubit target,
+                   const std::size_t start = 0) {
     return makeGateDD(mat, n, qc::Controls{control}, target, start);
   }
-  mEdge makeGateDD(const std::array<ComplexValue, NEDGE>& mat,
-                   const std::size_t n, const qc::Controls& controls,
-                   const qc::Qubit target, const std::size_t start = 0) {
+  mEdge makeGateDD(const GateMatrix& mat, const std::size_t n,
+                   const qc::Controls& controls, const qc::Qubit target,
+                   const std::size_t start = 0) {
     if (n + start > nqubits) {
       throw std::runtime_error{
           "Requested gate with " + std::to_string(n + start) +
@@ -672,7 +671,7 @@ public:
     auto it = controls.begin();
     for (auto i = 0U; i < NEDGE; ++i) {
       // NOLINTNEXTLINE(clang-diagnostic-float-equal) it has to be really zero
-      if (mat[i].r == 0 && mat[i].i == 0) {
+      if (mat[i].real() == 0 && mat[i].imag() == 0) {
         em[i] = mEdge::zero;
       } else {
         em[i] = mEdge::terminal(cn.lookup(mat[i]));
@@ -752,10 +751,9 @@ public:
   @throws std::runtime_error if the number of qubits is larger than the package
   configuration
   **/
-  mEdge makeTwoQubitGateDD(
-      const std::array<std::array<ComplexValue, NEDGE>, NEDGE>& mat,
-      const std::size_t n, const qc::Qubit target0, const qc::Qubit target1,
-      const std::size_t start = 0) {
+  mEdge makeTwoQubitGateDD(const TwoQubitGateMatrix& mat, const std::size_t n,
+                           const qc::Qubit target0, const qc::Qubit target1,
+                           const std::size_t start = 0) {
     // sanity check
     if (n + start > nqubits) {
       throw std::runtime_error{
@@ -774,7 +772,7 @@ public:
         const auto& matEntry = matRow.at(i2);
         auto& emEntry = emRow.at(i2);
         // NOLINTNEXTLINE(clang-diagnostic-float-equal) it has to be really zero
-        if (matEntry.r == 0 && matEntry.i == 0) {
+        if (matEntry.real() == 0 && matEntry.imag() == 0) {
           emEntry = mEdge::zero;
         } else {
           emEntry = mEdge::terminal(cn.lookup(matEntry));
@@ -845,10 +843,10 @@ public:
                    const std::size_t start = 0) {
     auto c = controls;
     c.insert(qc::Control{target0});
-    mEdge e = makeGateDD(Xmat, n, c, target1, start);
+    mEdge e = makeGateDD(X_MAT, n, c, target1, start);
     c.erase(qc::Control{target0});
     c.insert(qc::Control{target1});
-    e = multiply(e, multiply(makeGateDD(Xmat, n, c, target0, start), e));
+    e = multiply(e, multiply(makeGateDD(X_MAT, n, c, target0, start), e));
     return e;
   }
 
@@ -857,52 +855,52 @@ public:
                     const std::size_t start = 0) {
     auto c = controls;
     c.insert(qc::Control{target1});
-    mEdge e = makeGateDD(Xmat, n, c, target0, start);
-    e = multiply(makeGateDD(Xmat, n, controls, target1, start), e);
+    mEdge e = makeGateDD(X_MAT, n, c, target0, start);
+    e = multiply(makeGateDD(X_MAT, n, controls, target1, start), e);
     return e;
   }
 
   mEdge makePeresdagDD(const std::size_t n, const qc::Controls& controls,
                        const qc::Qubit target0, const qc::Qubit target1,
                        const std::size_t start = 0) {
-    mEdge e = makeGateDD(Xmat, n, controls, target1, start);
+    mEdge e = makeGateDD(X_MAT, n, controls, target1, start);
     auto c = controls;
     c.insert(qc::Control{target1});
-    e = multiply(makeGateDD(Xmat, n, c, target0, start), e);
+    e = multiply(makeGateDD(X_MAT, n, c, target0, start), e);
     return e;
   }
 
   mEdge makeiSWAPDD(const std::size_t n, const qc::Controls& controls,
                     const qc::Qubit target0, const qc::Qubit target1,
                     const std::size_t start = 0) {
-    mEdge e = makeGateDD(Smat, n, controls, target1, start);        // S q[1]
-    e = multiply(e, makeGateDD(Smat, n, controls, target0, start)); // S q[0]
-    e = multiply(e, makeGateDD(Hmat, n, controls, target0, start)); // H q[0]
+    mEdge e = makeGateDD(S_MAT, n, controls, target1, start);        // S q[1]
+    e = multiply(e, makeGateDD(S_MAT, n, controls, target0, start)); // S q[0]
+    e = multiply(e, makeGateDD(H_MAT, n, controls, target0, start)); // H q[0]
     auto c = controls;
     c.insert(qc::Control{target0});
-    e = multiply(e, makeGateDD(Xmat, n, c, target1, start)); // CX q[0], q[1]
+    e = multiply(e, makeGateDD(X_MAT, n, c, target1, start)); // CX q[0], q[1]
     c.erase(qc::Control{target0});
     c.insert(qc::Control{target1});
-    e = multiply(e, makeGateDD(Xmat, n, c, target0, start)); // CX q[1], q[0]
-    e = multiply(e, makeGateDD(Hmat, n, controls, target1, start)); // H q[1]
+    e = multiply(e, makeGateDD(X_MAT, n, c, target0, start)); // CX q[1], q[0]
+    e = multiply(e, makeGateDD(H_MAT, n, controls, target1, start)); // H q[1]
     return e;
   }
 
   mEdge makeiSWAPinvDD(const std::size_t n, const qc::Controls& controls,
                        const qc::Qubit target0, const qc::Qubit target1,
                        const std::size_t start = 0) {
-    mEdge e = makeGateDD(Hmat, n, controls, target1, start); // H q[1]
+    mEdge e = makeGateDD(H_MAT, n, controls, target1, start); // H q[1]
     auto c = controls;
     c.insert(qc::Control{target1});
-    e = multiply(e, makeGateDD(Xmat, n, c, target0, start)); // CX q[1], q[0]
+    e = multiply(e, makeGateDD(X_MAT, n, c, target0, start)); // CX q[1], q[0]
     c.erase(qc::Control{target1});
     c.insert(qc::Control{target0});
-    e = multiply(e, makeGateDD(Xmat, n, c, target1, start)); // CX q[0], q[1]
-    e = multiply(e, makeGateDD(Hmat, n, controls, target0, start)); // H q[0]
+    e = multiply(e, makeGateDD(X_MAT, n, c, target1, start)); // CX q[0], q[1]
+    e = multiply(e, makeGateDD(H_MAT, n, controls, target0, start)); // H q[0]
     e = multiply(e,
-                 makeGateDD(Sdagmat, n, controls, target0, start)); // Sdag q[0]
+                 makeGateDD(SDG_MAT, n, controls, target0, start)); // Sdag q[0]
     e = multiply(e,
-                 makeGateDD(Sdagmat, n, controls, target1, start)); // Sdag q[1]
+                 makeGateDD(SDG_MAT, n, controls, target1, start)); // Sdag q[1]
     return e;
   }
 
@@ -911,10 +909,10 @@ public:
                   const std::size_t start = 0) {
     auto c = controls;
     c.insert(qc::Control{target0});
-    mEdge e = makeGateDD(Xmat, n, c, target1, start);
+    mEdge e = makeGateDD(X_MAT, n, c, target1, start);
     c.erase(qc::Control{target0});
     c.insert(qc::Control{target1});
-    e = multiply(e, makeGateDD(Xmat, n, c, target0, start));
+    e = multiply(e, makeGateDD(X_MAT, n, c, target0, start));
     return e;
   }
 
@@ -923,11 +921,11 @@ public:
                   const fp theta, const std::size_t start = 0) {
     auto c = controls;
     c.insert(qc::Control{target0});
-    auto e = makeGateDD(Xmat, n, c, target1, start);
+    auto e = makeGateDD(X_MAT, n, c, target1, start);
     c.erase(qc::Control{target0});
-    e = multiply(e, makeGateDD(RZmat(theta), n, c, target1, start));
+    e = multiply(e, makeGateDD(rzMat(theta), n, c, target1, start));
     c.insert(qc::Control{target0});
-    e = multiply(e, makeGateDD(Xmat, n, c, target1, start));
+    e = multiply(e, makeGateDD(X_MAT, n, c, target1, start));
     return e;
   }
 
@@ -936,13 +934,13 @@ public:
                   const fp theta, const std::size_t start = 0) {
     // no controls are necessary on the RX gates since they cancel if the
     // controls are 0.
-    auto e = makeGateDD(RXmat(PI_2), n, qc::Controls{}, target0, start);
-    e = multiply(e, makeGateDD(RXmat(PI_2), n, qc::Controls{}, target1, start));
+    auto e = makeGateDD(rxMat(PI_2), n, qc::Controls{}, target0, start);
+    e = multiply(e, makeGateDD(rxMat(PI_2), n, qc::Controls{}, target1, start));
     e = multiply(e, makeRZZDD(n, controls, target0, target1, theta, start));
     e = multiply(e,
-                 makeGateDD(RXmat(-PI_2), n, qc::Controls{}, target1, start));
+                 makeGateDD(rxMat(-PI_2), n, qc::Controls{}, target1, start));
     e = multiply(e,
-                 makeGateDD(RXmat(-PI_2), n, qc::Controls{}, target0, start));
+                 makeGateDD(rxMat(-PI_2), n, qc::Controls{}, target0, start));
     return e;
   }
 
@@ -951,11 +949,11 @@ public:
                   const fp theta, const std::size_t start = 0) {
     // no controls are necessary on the H gates since they cancel if the
     // controls are 0.
-    auto e = makeGateDD(Hmat, n, qc::Controls{}, target0, start);
-    e = multiply(e, makeGateDD(Hmat, n, qc::Controls{}, target1, start));
+    auto e = makeGateDD(H_MAT, n, qc::Controls{}, target0, start);
+    e = multiply(e, makeGateDD(H_MAT, n, qc::Controls{}, target1, start));
     e = multiply(e, makeRZZDD(n, controls, target0, target1, theta, start));
-    e = multiply(e, makeGateDD(Hmat, n, qc::Controls{}, target1, start));
-    e = multiply(e, makeGateDD(Hmat, n, qc::Controls{}, target0, start));
+    e = multiply(e, makeGateDD(H_MAT, n, qc::Controls{}, target1, start));
+    e = multiply(e, makeGateDD(H_MAT, n, qc::Controls{}, target0, start));
     return e;
   }
 
@@ -964,9 +962,9 @@ public:
                   const fp theta, const std::size_t start = 0) {
     // no controls are necessary on the H gates since they cancel if the
     // controls are 0.
-    auto e = makeGateDD(Hmat, n, qc::Controls{}, target1, start);
+    auto e = makeGateDD(H_MAT, n, qc::Controls{}, target1, start);
     e = multiply(e, makeRZZDD(n, controls, target0, target1, theta, start));
-    e = multiply(e, makeGateDD(Hmat, n, qc::Controls{}, target1, start));
+    e = multiply(e, makeGateDD(H_MAT, n, qc::Controls{}, target1, start));
     return e;
   }
 
@@ -974,7 +972,7 @@ public:
                   const qc::Qubit target0, const qc::Qubit target1,
                   const std::size_t start = 0) {
     auto e = makeRZXDD(n, controls, target0, target1, -PI_4, start);
-    e = multiply(e, makeGateDD(Xmat, n, controls, target0, start));
+    e = multiply(e, makeGateDD(X_MAT, n, controls, target0, start));
     e = multiply(e, makeRZXDD(n, controls, target0, target1, PI_4, start));
     return e;
   }
@@ -983,26 +981,26 @@ public:
                         const qc::Qubit target0, const qc::Qubit target1,
                         const fp theta, const fp beta = 0.,
                         const std::size_t start = 0) {
-    auto e = makeGateDD(RZmat(-beta), n, qc::Controls{}, target1, start);
+    auto e = makeGateDD(rzMat(-beta), n, qc::Controls{}, target1, start);
     e = multiply(e,
-                 makeGateDD(RZmat(-PI_2), n, qc::Controls{}, target0, start));
-    e = multiply(e, makeGateDD(SXmat, n, qc::Controls{}, target0, start));
-    e = multiply(e, makeGateDD(RZmat(PI_2), n, qc::Controls{}, target0, start));
-    e = multiply(e, makeGateDD(Smat, n, qc::Controls{}, target1, start));
-    e = multiply(e, makeGateDD(Xmat, n, qc::Control{target0}, target1, start));
+                 makeGateDD(rzMat(-PI_2), n, qc::Controls{}, target0, start));
+    e = multiply(e, makeGateDD(SX_MAT, n, qc::Controls{}, target0, start));
+    e = multiply(e, makeGateDD(rzMat(PI_2), n, qc::Controls{}, target0, start));
+    e = multiply(e, makeGateDD(S_MAT, n, qc::Controls{}, target1, start));
+    e = multiply(e, makeGateDD(X_MAT, n, qc::Control{target0}, target1, start));
     // only the following two gates need to be controlled by the controls since
     // the other gates cancel if the controls are 0.
     e = multiply(e,
-                 makeGateDD(RYmat(-theta / 2.), n, controls, target0, start));
-    e = multiply(e, makeGateDD(RYmat(theta / 2.), n, controls, target1, start));
+                 makeGateDD(ryMat(-theta / 2.), n, controls, target0, start));
+    e = multiply(e, makeGateDD(ryMat(theta / 2.), n, controls, target1, start));
 
-    e = multiply(e, makeGateDD(Xmat, n, qc::Control{target0}, target1, start));
-    e = multiply(e, makeGateDD(Sdagmat, n, qc::Controls{}, target1, start));
+    e = multiply(e, makeGateDD(X_MAT, n, qc::Control{target0}, target1, start));
+    e = multiply(e, makeGateDD(SDG_MAT, n, qc::Controls{}, target1, start));
     e = multiply(e,
-                 makeGateDD(RZmat(-PI_2), n, qc::Controls{}, target0, start));
-    e = multiply(e, makeGateDD(SXdagmat, n, qc::Controls{}, target0, start));
-    e = multiply(e, makeGateDD(RZmat(PI_2), n, qc::Controls{}, target0, start));
-    e = multiply(e, makeGateDD(RZmat(beta), n, qc::Controls{}, target1, start));
+                 makeGateDD(rzMat(-PI_2), n, qc::Controls{}, target0, start));
+    e = multiply(e, makeGateDD(SXDG_MAT, n, qc::Controls{}, target0, start));
+    e = multiply(e, makeGateDD(rzMat(PI_2), n, qc::Controls{}, target0, start));
+    e = multiply(e, makeGateDD(rzMat(beta), n, qc::Controls{}, target1, start));
     return e;
   }
 
@@ -1010,26 +1008,26 @@ public:
                        const qc::Qubit target0, const qc::Qubit target1,
                        const fp theta, const fp beta = 0.,
                        const std::size_t start = 0) {
-    auto e = makeGateDD(RZmat(beta), n, qc::Controls{}, target1, start);
+    auto e = makeGateDD(rzMat(beta), n, qc::Controls{}, target1, start);
     e = multiply(e,
-                 makeGateDD(RZmat(-PI_2), n, qc::Controls{}, target0, start));
-    e = multiply(e, makeGateDD(SXmat, n, qc::Controls{}, target0, start));
-    e = multiply(e, makeGateDD(RZmat(PI_2), n, qc::Controls{}, target0, start));
-    e = multiply(e, makeGateDD(Smat, n, qc::Controls{}, target1, start));
-    e = multiply(e, makeGateDD(Xmat, n, qc::Control{target0}, target1, start));
+                 makeGateDD(rzMat(-PI_2), n, qc::Controls{}, target0, start));
+    e = multiply(e, makeGateDD(SX_MAT, n, qc::Controls{}, target0, start));
+    e = multiply(e, makeGateDD(rzMat(PI_2), n, qc::Controls{}, target0, start));
+    e = multiply(e, makeGateDD(S_MAT, n, qc::Controls{}, target1, start));
+    e = multiply(e, makeGateDD(X_MAT, n, qc::Control{target0}, target1, start));
     // only the following two gates need to be controlled by the controls since
     // the other gates cancel if the controls are 0.
-    e = multiply(e, makeGateDD(RYmat(theta / 2.), n, controls, target0, start));
-    e = multiply(e, makeGateDD(RYmat(theta / 2.), n, controls, target1, start));
+    e = multiply(e, makeGateDD(ryMat(theta / 2.), n, controls, target0, start));
+    e = multiply(e, makeGateDD(ryMat(theta / 2.), n, controls, target1, start));
 
-    e = multiply(e, makeGateDD(Xmat, n, qc::Control{target0}, target1, start));
-    e = multiply(e, makeGateDD(Sdagmat, n, qc::Controls{}, target1, start));
+    e = multiply(e, makeGateDD(X_MAT, n, qc::Control{target0}, target1, start));
+    e = multiply(e, makeGateDD(SDG_MAT, n, qc::Controls{}, target1, start));
     e = multiply(e,
-                 makeGateDD(RZmat(-PI_2), n, qc::Controls{}, target0, start));
-    e = multiply(e, makeGateDD(SXdagmat, n, qc::Controls{}, target0, start));
-    e = multiply(e, makeGateDD(RZmat(PI_2), n, qc::Controls{}, target0, start));
+                 makeGateDD(rzMat(-PI_2), n, qc::Controls{}, target0, start));
+    e = multiply(e, makeGateDD(SXDG_MAT, n, qc::Controls{}, target0, start));
+    e = multiply(e, makeGateDD(rzMat(PI_2), n, qc::Controls{}, target0, start));
     e = multiply(e,
-                 makeGateDD(RZmat(-beta), n, qc::Controls{}, target1, start));
+                 makeGateDD(rzMat(-beta), n, qc::Controls{}, target1, start));
     return e;
   }
 
@@ -1462,14 +1460,7 @@ public:
   void performCollapsingMeasurement(vEdge& rootEdge, const Qubit index,
                                     const fp probability,
                                     const bool measureZero) {
-    GateMatrix measurementMatrix{complex_zero, complex_zero, complex_zero,
-                                 complex_zero};
-
-    if (measureZero) {
-      measurementMatrix[0] = complex_one;
-    } else {
-      measurementMatrix[3] = complex_one;
-    }
+    GateMatrix measurementMatrix = measureZero ? MEAS_ZERO_MAT : MEAS_ONE_MAT;
 
     const auto measurementGate =
         makeGateDD(measurementMatrix, rootEdge.p->v + 1U, index);

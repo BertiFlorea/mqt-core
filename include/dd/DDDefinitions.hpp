@@ -1,7 +1,9 @@
 #pragma once
 
+#include <array>
 #include <complex>
 #include <cstdint>
+#include <string>
 #include <type_traits>
 #include <unordered_map>
 #include <utility>
@@ -100,6 +102,10 @@ using SparsePVecStrKeys = std::unordered_map<std::string, fp>;
 using CMat = std::vector<CVec>;
 using SparseCMat = std::unordered_map<std::pair<std::size_t, std::size_t>,
                                       std::complex<fp>, PairHash>;
+
+using GateMatrix = std::array<std::complex<fp>, NEDGE>;
+using TwoQubitGateMatrix =
+    std::array<std::array<std::complex<fp>, NEDGE>, NEDGE>;
 
 /**
  * @brief Converts a decimal number to a binary string (big endian)
