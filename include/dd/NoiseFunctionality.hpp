@@ -122,7 +122,7 @@ public:
                                                   true, multiQubitOperation);
         tmp = package->multiply(stackedOperation, state);
       }
-      tmp.w = Complex::one;
+      tmp.w = Complex::one();
 
       package->incRef(tmp);
       package->decRef(state);
@@ -326,7 +326,7 @@ private:
       return {originalEdge.p, package->cn.getCached(originalEdge.w)};
     }
 
-    auto originalCopy = qc::DensityMatrixDD{originalEdge.p, Complex::one};
+    auto originalCopy = dEdge{originalEdge.p, Complex::one()};
     ArrayOfEdges newEdges{};
     for (size_t i = 0; i < newEdges.size(); i++) {
       auto& successor = originalCopy.p->e[i];

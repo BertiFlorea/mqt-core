@@ -386,10 +386,11 @@ public:
   }
 
   dEdge makeZeroDensityOperator(const std::size_t n) {
-    auto f = dEdge::one;
+    auto f = dEdge::one();
     for (std::size_t p = 0; p < n; p++) {
-      f = makeDDNode(static_cast<Qubit>(p),
-                     std::array{f, dEdge::zero, dEdge::zero, dEdge::zero});
+      f = makeDDNode(
+          static_cast<Qubit>(p),
+          std::array{f, dEdge::zero(), dEdge::zero(), dEdge::zero()});
     }
     return f;
   }
@@ -403,9 +404,9 @@ public:
           std::to_string(nqubits) +
           " qubits. Please allocate a larger package instance."};
     }
-    auto f = vEdge::one;
+    auto f = vEdge::one();
     for (std::size_t p = start; p < n + start; p++) {
-      f = makeDDNode(static_cast<Qubit>(p), std::array{f, vEdge::zero});
+      f = makeDDNode(static_cast<Qubit>(p), std::array{f, vEdge::zero()});
     }
     return f;
   }
@@ -419,12 +420,12 @@ public:
           std::to_string(nqubits) +
           " qubits. Please allocate a larger package instance."};
     }
-    auto f = vEdge::one;
+    auto f = vEdge::one();
     for (std::size_t p = start; p < n + start; ++p) {
       if (!state[p]) {
-        f = makeDDNode(static_cast<Qubit>(p), std::array{f, vEdge::zero});
+        f = makeDDNode(static_cast<Qubit>(p), std::array{f, vEdge::zero()});
       } else {
-        f = makeDDNode(static_cast<Qubit>(p), std::array{vEdge::zero, f});
+        f = makeDDNode(static_cast<Qubit>(p), std::array{vEdge::zero(), f});
       }
     }
     return f;
@@ -446,14 +447,14 @@ public:
           ", but received " + std::to_string(state.size()));
     }
 
-    auto f = vEdge::one;
+    auto f = vEdge::one();
     for (std::size_t p = start; p < n + start; ++p) {
       switch (state[p]) {
       case BasisStates::zero:
-        f = makeDDNode(static_cast<Qubit>(p), std::array{f, vEdge::zero});
+        f = makeDDNode(static_cast<Qubit>(p), std::array{f, vEdge::zero()});
         break;
       case BasisStates::one:
-        f = makeDDNode(static_cast<Qubit>(p), std::array{vEdge::zero, f});
+        f = makeDDNode(static_cast<Qubit>(p), std::array{vEdge::zero(), f});
         break;
       case BasisStates::plus:
         f = makeDDNode(
@@ -487,7 +488,7 @@ public:
   // generate the decision diagram from an arbitrary state vector
   vEdge makeStateFromVector(const CVec& stateVector) {
     if (stateVector.empty()) {
-      return vEdge::one;
+      return vEdge::one();
     }
     const auto& length = stateVector.size();
     if ((length & (length - 1)) != 0) {
@@ -522,7 +523,7 @@ public:
   **/
   mEdge makeDDFromMatrix(const CMat& matrix) {
     if (matrix.empty()) {
-      return mEdge::one;
+      return mEdge::one();
     }
 
     const auto& length = matrix.size();
@@ -671,8 +672,8 @@ public:
     auto it = controls.begin();
     for (auto i = 0U; i < NEDGE; ++i) {
       // NOLINTNEXTLINE(clang-diagnostic-float-equal) it has to be really zero
-      if (mat[i].real() == 0 && mat[i].imag() == 0) {
-        em[i] = mEdge::zero;
+      if (mat[i] == 0.) {
+        em[i] = mEdge::zero();
       } else {
         em[i] = mEdge::terminal(cn.lookup(mat[i]));
       }
@@ -685,13 +686,13 @@ public:
         for (auto i2 = 0U; i2 < RADIX; ++i2) {
           auto i = i1 * RADIX + i2;
           if (it != controls.end() && it->qubit == z) {
-            auto edges =
-                std::array{mEdge::zero, mEdge::zero, mEdge::zero, mEdge::zero};
+            auto edges = std::array{mEdge::zero(), mEdge::zero(), mEdge::zero(),
+                                    mEdge::zero()};
             if (it->type == qc::Control::Type::Neg) { // neg. control
               edges[0] = em[i];
               if (i1 == i2) {
                 if (z == 0U) {
-                  edges[3] = mEdge::one;
+                  edges[3] = mEdge::one();
                 } else {
                   edges[3] = makeIdent(start, z - 1U);
                 }
@@ -700,7 +701,7 @@ public:
               edges[3] = em[i];
               if (i1 == i2) {
                 if (z == 0U) {
-                  edges[0] = mEdge::one;
+                  edges[0] = mEdge::one();
                 } else {
                   edges[0] = makeIdent(start, z - 1U);
                 }
@@ -709,7 +710,7 @@ public:
             em[i] = makeDDNode(z, edges);
           } else { // not connected
             em[i] = makeDDNode(
-                z, std::array{em[i], mEdge::zero, mEdge::zero, em[i]});
+                z, std::array{em[i], mEdge::zero(), mEdge::zero(), em[i]});
           }
         }
       }
@@ -726,15 +727,15 @@ public:
       auto q = static_cast<Qubit>(z + 1);
       if (it != controls.end() && it->qubit == static_cast<qc::Qubit>(q)) {
         if (it->type == qc::Control::Type::Neg) { // neg. control
-          e = makeDDNode(q, std::array{e, mEdge::zero, mEdge::zero,
+          e = makeDDNode(q, std::array{e, mEdge::zero(), mEdge::zero(),
                                        makeIdent(start, q - 1U)});
         } else { // pos. control
-          e = makeDDNode(q, std::array{makeIdent(start, q - 1U), mEdge::zero,
-                                       mEdge::zero, e});
+          e = makeDDNode(q, std::array{makeIdent(start, q - 1U), mEdge::zero(),
+                                       mEdge::zero(), e});
         }
         ++it;
       } else { // not connected
-        e = makeDDNode(q, std::array{e, mEdge::zero, mEdge::zero, e});
+        e = makeDDNode(q, std::array{e, mEdge::zero(), mEdge::zero(), e});
       }
     }
     return e;
@@ -772,8 +773,8 @@ public:
         const auto& matEntry = matRow.at(i2);
         auto& emEntry = emRow.at(i2);
         // NOLINTNEXTLINE(clang-diagnostic-float-equal) it has to be really zero
-        if (matEntry.real() == 0 && matEntry.imag() == 0) {
-          emEntry = mEdge::zero;
+        if (matEntry == 0.) {
+          emEntry = mEdge::zero();
         } else {
           emEntry = mEdge::terminal(cn.lookup(matEntry));
         }
@@ -786,8 +787,8 @@ public:
     for (; z < smallerTarget; ++z) {
       for (auto& row : em) {
         for (auto& entry : row) {
-          entry =
-              makeDDNode(z, std::array{entry, mEdge::zero, mEdge::zero, entry});
+          entry = makeDDNode(
+              z, std::array{entry, mEdge::zero(), mEdge::zero(), entry});
         }
       }
     }
@@ -820,8 +821,8 @@ public:
     // process lines between the two targets (by creating identity structures)
     for (++z; z < std::max(target0, target1); ++z) {
       for (auto& entry : em0) {
-        entry =
-            makeDDNode(z, std::array{entry, mEdge::zero, mEdge::zero, entry});
+        entry = makeDDNode(
+            z, std::array{entry, mEdge::zero(), mEdge::zero(), entry});
       }
     }
 
@@ -832,7 +833,7 @@ public:
     // process lines above the larger target (by creating identity structures)
     const auto end = static_cast<Qubit>(n + start);
     for (++z; z < end; ++z) {
-      e = makeDDNode(z, std::array{e, mEdge::zero, mEdge::zero, e});
+      e = makeDDNode(z, std::array{e, mEdge::zero(), mEdge::zero(), e});
     }
 
     return e;
@@ -1197,7 +1198,7 @@ private:
       if (e.p->v == v) {
         for (std::size_t i = 0; i < n; i++) {
           edges[i] = i == edgeIdx
-                         ? Edge<Node>::zero
+                         ? Edge<Node>::zero()
                          : e.p->e[i]; // optimization -> node cannot occur below
                                       // again, since dd is assumed to be free
         }
@@ -1289,32 +1290,29 @@ public:
     }
 
     if (collapse) {
-      decRef(rootEdge);
-
-      vEdge e = vEdge::one;
+      vEdge e = vEdge::one();
       std::array<vEdge, 2> edges{};
-
       for (std::size_t p = 0U; p < numberOfQubits; ++p) {
         if (result[p] == '0') {
           edges[0] = e;
-          edges[1] = vEdge::zero;
+          edges[1] = vEdge::zero();
         } else {
-          edges[0] = vEdge::zero;
+          edges[0] = vEdge::zero();
           edges[1] = e;
         }
-        e = makeDDNode(static_cast<Qubit>(p), edges, false);
+        e = makeDDNode(static_cast<Qubit>(p), edges);
       }
       incRef(e);
+      decRef(rootEdge);
       rootEdge = e;
-      garbageCollect();
     }
 
     return std::string{result.rbegin(), result.rend()};
   }
 
 private:
-  double assignProbabilities(const vEdge& edge,
-                             std::unordered_map<const vNode*, fp>& probs) {
+  fp assignProbabilities(const vEdge& edge,
+                         std::unordered_map<const vNode*, fp>& probs) {
     auto it = probs.find(edge.p);
     if (it != probs.end()) {
       return ComplexNumbers::mag2(edge.w) * it->second;
@@ -1781,7 +1779,7 @@ private:
     for (auto i = 0U; i < rows; i++) {
       for (auto j = 0U; j < cols; j++) {
         auto idx = cols * i + j;
-        edge[idx] = ResultEdge::zero;
+        edge[idx] = ResultEdge::zero();
         for (auto k = 0U; k < rows; k++) {
           const auto xIdx = rows * i + k;
           LEdge e1 = x.p->e[xIdx];
@@ -1908,19 +1906,19 @@ public:
     return fidelityOfMeasurementOutcomesRecursive(e, probs, 0);
   }
 
-  dd::fp fidelityOfMeasurementOutcomesRecursive(const vEdge& e,
-                                                const SparsePVec& probs,
-                                                const std::size_t i) {
-    const auto topw = dd::ComplexNumbers::mag(e.w);
+  fp fidelityOfMeasurementOutcomesRecursive(const vEdge& e,
+                                            const SparsePVec& probs,
+                                            const std::size_t i) {
+    const auto top = ComplexNumbers::mag(e.w);
     if (e.isTerminal()) {
       if (auto it = probs.find(i); it != probs.end()) {
-        return topw * std::sqrt(it->second);
+        return top * std::sqrt(it->second);
       }
       return 0.;
     }
 
     std::size_t leftIdx = i;
-    dd::fp leftContribution = 0.;
+    fp leftContribution = 0.;
     if (!e.p->e[0].w.approximatelyZero()) {
       leftContribution =
           fidelityOfMeasurementOutcomesRecursive(e.p->e[0], probs, leftIdx);
@@ -1933,7 +1931,7 @@ public:
           fidelityOfMeasurementOutcomesRecursive(e.p->e[1], probs, rightIdx);
     }
 
-    return topw * (leftContribution + rightContribution);
+    return top * (leftContribution + rightContribution);
   }
 
 private:
@@ -2273,14 +2271,14 @@ public:
   // create n-qubit identity DD. makeIdent(n) === makeIdent(0, n-1)
   mEdge makeIdent(const std::size_t n) {
     if (n == 0U) {
-      return mEdge::one;
+      return mEdge::one();
     }
     return makeIdent(0, n - 1);
   }
   mEdge makeIdent(const std::size_t leastSignificantQubit,
                   const std::size_t mostSignificantQubit) {
     if (mostSignificantQubit < leastSignificantQubit) {
-      return mEdge::one;
+      return mEdge::one();
     }
 
     const auto& entry = idTable.at(mostSignificantQubit);
@@ -2293,17 +2291,17 @@ public:
       if (!prevEntry.isTerminal()) {
         idTable.at(mostSignificantQubit) = makeDDNode(
             static_cast<Qubit>(mostSignificantQubit),
-            std::array{prevEntry, mEdge::zero, mEdge::zero, prevEntry});
+            std::array{prevEntry, mEdge::zero(), mEdge::zero(), prevEntry});
         return idTable[mostSignificantQubit];
       }
     }
 
     auto e = makeDDNode(
         static_cast<Qubit>(leastSignificantQubit),
-        std::array{mEdge::one, mEdge::zero, mEdge::zero, mEdge::one});
+        std::array{mEdge::one(), mEdge::zero(), mEdge::zero(), mEdge::one()});
     for (auto k = leastSignificantQubit + 1; k <= mostSignificantQubit; ++k) {
       e = makeDDNode(static_cast<Qubit>(k),
-                     std::array{e, mEdge::zero, mEdge::zero, e});
+                     std::array{e, mEdge::zero(), mEdge::zero(), e});
     }
     if (leastSignificantQubit == 0) {
       idTable.at(mostSignificantQubit) = e;
@@ -2447,14 +2445,14 @@ private:
     // something to reduce for this qubit
     if (ancillary[f.p->v]) {
       if (regular) {
-        if (f.p->e[1].w != Complex::zero || f.p->e[3].w != Complex::zero) {
-          f = makeDDNode(f.p->v, std::array{f.p->e[0], mEdge::zero, f.p->e[2],
-                                            mEdge::zero});
+        if (!f.p->e[1].w.exactlyZero() || !f.p->e[3].w.exactlyZero()) {
+          f = makeDDNode(f.p->v, std::array{f.p->e[0], mEdge::zero(), f.p->e[2],
+                                            mEdge::zero()});
         }
       } else {
-        if (f.p->e[2].w != Complex::zero || f.p->e[3].w != Complex::zero) {
-          f = makeDDNode(f.p->v, std::array{f.p->e[0], f.p->e[1], mEdge::zero,
-                                            mEdge::zero});
+        if (!f.p->e[2].w.exactlyZero() || !f.p->e[3].w.exactlyZero()) {
+          f = makeDDNode(f.p->v, std::array{f.p->e[0], f.p->e[1], mEdge::zero(),
+                                            mEdge::zero()});
         }
       }
     }
@@ -2492,16 +2490,16 @@ private:
 
     // something to reduce for this qubit
     if (garbage[f.p->v]) {
-      if (f.p->e[1].w != Complex::zero) {
+      if (!f.p->e[1].w.exactlyZero()) {
         vEdge g{};
-        if (f.p->e[0].w == Complex::zero && f.p->e[1].w != Complex::zero) {
+        if (f.p->e[0].w.exactlyZero() && !f.p->e[1].w.exactlyZero()) {
           g = f.p->e[1];
-        } else if (f.p->e[1].w != Complex::zero) {
+        } else if (!f.p->e[1].w.exactlyZero()) {
           g = add(f.p->e[0], f.p->e[1]);
         } else {
           g = f.p->e[0];
         }
-        f = makeDDNode(e.p->v, std::array{g, vEdge::zero});
+        f = makeDDNode(e.p->v, std::array{g, vEdge::zero()});
       }
     }
     f.w = cn.lookup(cn.mulTemp(f.w, e.w));
@@ -2510,7 +2508,6 @@ private:
     if (ComplexNumbers::mag2(f.w) > 1.0) {
       f.w = Complex::one;
     }
-
     return f;
   }
   mEdge reduceGarbageRecursion(mEdge& e, const std::vector<bool>& garbage,
@@ -2546,44 +2543,46 @@ private:
     // something to reduce for this qubit
     if (garbage[f.p->v]) {
       if (regular) {
-        if (f.p->e[2].w != Complex::zero || f.p->e[3].w != Complex::zero) {
+        if (!f.p->e[2].w.exactlyZero() || !f.p->e[3].w.exactlyZero()) {
           mEdge g{};
-          if (f.p->e[0].w == Complex::zero && f.p->e[2].w != Complex::zero) {
+          if (f.p->e[0].w.exactlyZero() && !f.p->e[2].w.exactlyZero()) {
             g = f.p->e[2];
-          } else if (f.p->e[2].w != Complex::zero) {
+          } else if (!f.p->e[2].w.exactlyZero()) {
             g = add(f.p->e[0], f.p->e[2]);
           } else {
             g = f.p->e[0];
           }
           mEdge h{};
-          if (f.p->e[1].w == Complex::zero && f.p->e[3].w != Complex::zero) {
+          if (f.p->e[1].w.exactlyZero() && !f.p->e[3].w.exactlyZero()) {
             h = f.p->e[3];
-          } else if (f.p->e[3].w != Complex::zero) {
+          } else if (!f.p->e[3].w.exactlyZero()) {
             h = add(f.p->e[1], f.p->e[3]);
           } else {
             h = f.p->e[1];
           }
-          f = makeDDNode(e.p->v, std::array{g, h, mEdge::zero, mEdge::zero});
+          f = makeDDNode(e.p->v,
+                         std::array{g, h, mEdge::zero(), mEdge::zero()});
         }
       } else {
-        if (f.p->e[1].w != Complex::zero || f.p->e[3].w != Complex::zero) {
+        if (!f.p->e[1].w.exactlyZero() || !f.p->e[3].w.exactlyZero()) {
           mEdge g{};
-          if (f.p->e[0].w == Complex::zero && f.p->e[1].w != Complex::zero) {
+          if (f.p->e[0].w.exactlyZero() && !f.p->e[1].w.exactlyZero()) {
             g = f.p->e[1];
-          } else if (f.p->e[1].w != Complex::zero) {
+          } else if (!f.p->e[1].w.exactlyZero()) {
             g = add(f.p->e[0], f.p->e[1]);
           } else {
             g = f.p->e[0];
           }
           mEdge h{};
-          if (f.p->e[2].w == Complex::zero && f.p->e[3].w != Complex::zero) {
+          if (f.p->e[2].w.exactlyZero() && !f.p->e[3].w.exactlyZero()) {
             h = f.p->e[3];
-          } else if (f.p->e[3].w != Complex::zero) {
+          } else if (!f.p->e[3].w.exactlyZero()) {
             h = add(f.p->e[2], f.p->e[3]);
           } else {
             h = f.p->e[2];
           }
-          f = makeDDNode(e.p->v, std::array{g, mEdge::zero, h, mEdge::zero});
+          f = makeDDNode(e.p->v,
+                         std::array{g, mEdge::zero(), h, mEdge::zero()});
         }
       }
     }
@@ -2593,7 +2592,6 @@ private:
     if (ComplexNumbers::mag2(f.w) > 1.0) {
       f.w = Complex::one;
     }
-
     return f;
   }
 
