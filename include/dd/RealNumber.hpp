@@ -2,6 +2,9 @@
 
 #include "dd/DDDefinitions.hpp"
 
+#include <limits>
+#include <ostream>
+
 namespace dd {
 /**
  * @brief A struct for representing real numbers as part of the DD package.
@@ -150,6 +153,13 @@ struct RealNumber {
    * @param os The stream to write to.
    */
   static void writeBinary(const RealNumber* e, std::ostream& os);
+
+  /**
+   * @brief Write a binary representation of a floating point number to a
+   * @param num The number to write.
+   * @param os The stream to write to.
+   */
+  static void writeBinary(fp num, std::ostream& os);
 
   /**
    * @brief Get an aligned pointer to the number.
