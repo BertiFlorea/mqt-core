@@ -15,26 +15,12 @@
 #include <utility>
 
 namespace dd {
-// NOLINTBEGIN(cppcoreguidelines-avoid-non-const-global-variables,
-// cppcoreguidelines-interfaces-global-init)
-Complex Complex::zero{&constants::zero, &constants::zero};
-Complex Complex::one{&constants::one, &constants::zero};
-// NOLINTEND(cppcoreguidelines-avoid-non-const-global-variables,
-// cppcoreguidelines-interfaces-global-init)
 
 void Complex::setVal(const Complex& c) const noexcept {
   assert(!RealNumber::isNegativePointer(r));
   assert(!RealNumber::isNegativePointer(i));
   r->value = RealNumber::val(c.r);
   i->value = RealNumber::val(c.i);
-}
-
-bool Complex::exactlyZero() const noexcept {
-  return RealNumber::exactlyZero(r) && RealNumber::exactlyZero(i);
-}
-
-bool Complex::exactlyOne() const noexcept {
-  return RealNumber::exactlyOne(r) && RealNumber::exactlyZero(i);
 }
 
 bool Complex::approximatelyEquals(const Complex& c) const noexcept {
@@ -44,6 +30,11 @@ bool Complex::approximatelyEquals(const Complex& c) const noexcept {
 
 bool Complex::approximatelyZero() const noexcept {
   return RealNumber::approximatelyZero(r) && RealNumber::approximatelyZero(i);
+}
+
+bool Complex::approximatelyZero(const std::complex<fp>& c) noexcept {
+  return RealNumber::approximatelyZero(c.real()) &&
+         RealNumber::approximatelyZero(c.imag());
 }
 
 bool Complex::approximatelyOne() const noexcept {

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "dd/DDDefinitions.hpp"
+#include "dd/RealNumber.hpp"
 
 #include <complex>
 #include <cstddef>
@@ -21,12 +22,22 @@ struct Complex {
   /// Compute table entry for the imaginary part.
   RealNumber* i;
 
-  // NOLINTBEGIN(cppcoreguidelines-avoid-non-const-global-variables)
-  /// The static zero constant.
-  static Complex zero;
-  /// The static one constant.
-  static Complex one;
-  // NOLINTEND(cppcoreguidelines-avoid-non-const-global-variables)
+  /**
+   * @brief The static constant for the complex number zero.
+   * @return A complex number with real and imaginary part equal to zero.
+   */
+  static constexpr Complex zero() noexcept {
+    return {&constants::zero, &constants::zero};
+  }
+
+  /**
+   * @brief The static constant for the complex number one.
+   * @return A complex number with real part equal to one and imaginary part
+   * equal to zero.
+   */
+  static constexpr Complex one() noexcept {
+    return {&constants::one, &constants::zero};
+  }
 
   /**
    * @brief Set the value based on the given complex number.
@@ -38,18 +49,22 @@ struct Complex {
    * @brief Check whether the complex number is exactly equal to zero.
    * @returns True if the complex number is exactly equal to zero, false
    * otherwise.
-   * @see CTEntry::exactlyZero
+   * @see RealNumber::exactlyZero
    */
-  [[nodiscard]] bool exactlyZero() const noexcept;
+  [[nodiscard]] constexpr bool exactlyZero() const noexcept {
+    return RealNumber::exactlyZero(r) && RealNumber::exactlyZero(i);
+  }
 
   /**
    * @brief Check whether the complex number is exactly equal to one.
    * @returns True if the complex number is exactly equal to one, false
    * otherwise.
-   * @see CTEntry::exactlyOne
-   * @see CTEntry::exactlyZero
+   * @see RealNumber::exactlyOne
+   * @see RealNumber::exactlyZero
    */
-  [[nodiscard]] bool exactlyOne() const noexcept;
+  [[nodiscard]] constexpr bool exactlyOne() const noexcept {
+    return RealNumber::exactlyOne(r) && RealNumber::exactlyZero(i);
+  }
 
   /**
    * @brief Check whether the complex number is approximately equal to the
@@ -57,7 +72,7 @@ struct Complex {
    * @param c The complex number to compare to.
    * @returns True if the complex number is approximately equal to the given
    * complex number, false otherwise.
-   * @see CTEntry::approximatelyEquals
+   * @see RealNumber::approximatelyEquals
    */
   [[nodiscard]] bool approximatelyEquals(const Complex& c) const noexcept;
 
@@ -65,16 +80,26 @@ struct Complex {
    * @brief Check whether the complex number is approximately equal to zero.
    * @returns True if the complex number is approximately equal to zero, false
    * otherwise.
-   * @see CTEntry::approximatelyZero
+   * @see RealNumber::approximatelyZero
    */
   [[nodiscard]] bool approximatelyZero() const noexcept;
+
+  /**
+   * @brief Check whether the complex number is approximately equal to zero.
+   * @param c The complex number to compare to.
+   * @return True if the complex number is approximately equal to zero, false
+   * otherwise.
+   * @see RealNumber::approximatelyZero
+   */
+  [[nodiscard]] static bool
+  approximatelyZero(const std::complex<fp>& c) noexcept;
 
   /**
    * @brief Check whether the complex number is approximately equal to one.
    * @returns True if the complex number is approximately equal to one, false
    * otherwise.
-   * @see CTEntry::approximatelyOne
-   * @see CTEntry::approximatelyZero
+   * @see RealNumber::approximatelyOne
+   * @see RealNumber::approximatelyZero
    */
   [[nodiscard]] bool approximatelyOne() const noexcept;
 
