@@ -8,7 +8,6 @@ if(NOT TARGET ${PROJECT_NAME}-dd)
     CachedEdge.cpp
     Complex.cpp
     ComplexNumbers.cpp
-    ComplexValue.cpp
     Edge.cpp
     FunctionalityConstruction.cpp
     MemoryManager.cpp
