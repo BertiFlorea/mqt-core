@@ -266,6 +266,16 @@ std::ostream& operator<<(std::ostream& os, const Complex& c) {
   return os << c.toString();
 }
 
+std::complex<fp> operator*(const Complex& c1, const std::complex<fp>& c2) {
+  return static_cast<std::complex<fp>>(c1) * c2;
+}
+std::complex<fp> operator*(const std::complex<fp>& c1, const Complex& c2) {
+  return c1 * static_cast<std::complex<fp>>(c2);
+}
+std::complex<fp> operator*(const Complex& c1, const Complex& c2) {
+  return static_cast<std::complex<fp>>(c1) * static_cast<std::complex<fp>>(c2);
+}
+
 std::complex<fp> operator/(const Complex& c1, const std::complex<fp>& c2) {
   return static_cast<std::complex<fp>>(c1) / c2;
 }

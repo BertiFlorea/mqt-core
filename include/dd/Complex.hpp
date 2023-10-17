@@ -172,6 +172,10 @@ struct Complex {
  */
 std::ostream& operator<<(std::ostream& os, const Complex& c);
 
+std::complex<fp> operator*(const Complex& c1, const std::complex<fp>& c2);
+std::complex<fp> operator*(const std::complex<fp>& c1, const Complex& c2);
+std::complex<fp> operator*(const Complex& c1, const Complex& c2);
+
 std::complex<fp> operator/(const Complex& c1, const std::complex<fp>& c2);
 std::complex<fp> operator/(const std::complex<fp>& c1, const Complex& c2);
 std::complex<fp> operator/(const Complex& c1, const Complex& c2);
