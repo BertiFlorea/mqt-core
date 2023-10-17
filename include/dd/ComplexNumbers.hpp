@@ -1,10 +1,7 @@
 #pragma once
 
 #include "dd/Complex.hpp"
-#include "dd/ComplexValue.hpp"
 #include "dd/DDDefinitions.hpp"
-#include "dd/MemoryManager.hpp"
-#include "dd/RealNumber.hpp"
 #include "dd/RealNumberUniqueTable.hpp"
 
 namespace dd {
@@ -13,8 +10,7 @@ class ComplexNumbers {
 
 public:
   /// Default constructor.
-  ComplexNumbers(RealNumberUniqueTable& table, MemoryManager<RealNumber>& cache)
-      : uniqueTable(&table), cacheManager(&cache){};
+  explicit ComplexNumbers(RealNumberUniqueTable& table) : uniqueTable(&table){};
   /// Default destructor.
   ~ComplexNumbers() = default;
 
@@ -100,104 +96,16 @@ public:
   [[nodiscard]] static Complex neg(const Complex& a) noexcept;
 
   /**
-   * @brief Add two complex numbers and return the result in a new complex
-   * number taken from the cache.
-   * @param a The first operand.
-   * @param b The second operand.
-   * @return The result.
-   */
-  [[nodiscard]] Complex addCached(const Complex& a, const Complex& b);
-
-  /**
-   * @brief Subtract two complex numbers and return the result in a new complex
-   * number taken from the cache.
-   * @param a The first operand.
-   * @param b The second operand.
-   * @return The result.
-   */
-  [[nodiscard]] Complex subCached(const Complex& a, const Complex& b);
-
-  /**
-   * @brief Multiply two complex numbers and return the result in a new complex
-   * number taken from the cache.
-   * @param a The first operand.
-   * @param b The second operand.
-   * @return The result.
-   */
-  [[nodiscard]] Complex mulCached(const Complex& a, const Complex& b);
-
-  /**
-   * @brief Divide two complex numbers and return the result in a new complex
-   * number taken from the cache.
-   * @param a The first operand.
-   * @param b The second operand.
-   * @return The result.
-   */
-  [[nodiscard]] Complex divCached(const Complex& a, const Complex& b);
-
-  /**
-   * @brief Add two complex numbers and return the result in temporary complex
-   * number taken from the cache.
-   * @param a The first operand.
-   * @param b The second operand.
-   * @return The result.
-   * @note The result is only valid until the next call to any function that
-   * requests a temporary or cached complex number.
-   */
-  [[nodiscard]] Complex addTemp(const Complex& a, const Complex& b);
-
-  /**
-   * @brief Subtract two complex numbers and return the result in temporary
-   * complex number taken from the cache.
-   * @param a The first operand.
-   * @param b The second operand.
-   * @return The result.
-   * @note The result is only valid until the next call to any function that
-   * requests a temporary or cached complex number.
-   */
-  [[nodiscard]] Complex subTemp(const Complex& a, const Complex& b);
-
-  /**
-   * @brief Multiply two complex numbers and return the result in temporary
-   * complex number taken from the cache.
-   * @param a The first operand.
-   * @param b The second operand.
-   * @return The result.
-   * @note The result is only valid until the next call to any function that
-   * requests a temporary or cached complex number.
-   */
-  [[nodiscard]] Complex mulTemp(const Complex& a, const Complex& b);
-
-  /**
-   * @brief Divide two complex numbers and return the result in temporary
-   * complex number taken from the cache.
-   * @param a The first operand.
-   * @param b The second operand.
-   * @return The result.
-   * @note The result is only valid until the next call to any function that
-   * requests a temporary or cached complex number.
-   */
-  [[nodiscard]] Complex divTemp(const Complex& a, const Complex& b);
-
-  /**
    * @brief Lookup a complex value in the complex table; if not found add it.
    * @param c The complex number.
-   * @param cached Used to indicate whether the number to be looked up is from
-   * the cache or not. If true, the number is returned to the cache as part of
-   * the lookup.
    * @return
    */
-  [[nodiscard]] Complex lookup(const Complex& c, bool cached = false);
+  [[nodiscard]] Complex lookup(const Complex& c);
 
   /**
    * @see lookup(fp r, fp i)
    */
   [[nodiscard]] Complex lookup(const std::complex<fp>& c);
-
-  /**
-   * @see lookup(fp r, fp i)
-   */
-  [[nodiscard]] Complex lookup(const ComplexValue& c);
 
   /**
    * @brief Lookup a complex value in the complex table; if not found add it.
@@ -236,96 +144,6 @@ public:
   }
 
   /**
-   * @brief Get a temporary complex number from the complex cache.
-   * @return The temporary complex number.
-   * @see MemoryManager::getTemporaryPair
-   */
-  [[nodiscard]] Complex getTemporary();
-
-  /**
-   * @brief Get a temporary complex number from the complex cache.
-   * @param r The real part.
-   * @param i The imaginary part.
-   * @return The temporary complex number.
-   * @see MemoryManager::getTemporaryPair
-   */
-  [[nodiscard]] Complex getTemporary(fp r, fp i);
-
-  /**
-   * @brief Get a temporary complex number from the complex cache.
-   * @param c The complex value.
-   * @return The temporary complex number.
-   * @see MemoryManager::getTemporaryPair
-   */
-  [[nodiscard]] Complex getTemporary(const ComplexValue& c);
-
-  /**
-   * @brief Get a temporary complex number from the complex cache.
-   * @param c The complex number.
-   * @return The temporary complex number.
-   * @see MemoryManager::getTemporaryPair
-   */
-  [[nodiscard]] Complex getTemporary(const Complex& c);
-
-  /**
-   * @brief Get a complex number from the complex cache.
-   * @param c The complex number.
-   * @return The cached complex number.
-   * @see MemoryManager::get
-   */
-  [[nodiscard]] Complex getCached();
-
-  /**
-   * @brief Get a complex number from the complex cache.
-   * @param r The real part.
-   * @param i The imaginary part.
-   * @return The cached complex number.
-   * @see MemoryManager::get
-   */
-  [[nodiscard]] Complex getCached(fp r, fp i);
-
-  /**
-   * @brief Get a complex number from the complex cache.
-   * @param c The complex value.
-   * @return The cached complex number.
-   * @see MemoryManager::get
-   */
-  [[nodiscard]] Complex getCached(const ComplexValue& c);
-
-  /**
-   * @brief Get a complex number from the complex cache.
-   * @param c The complex number.
-   * @return The cached complex number.
-   * @see MemoryManager::get
-   */
-  [[nodiscard]] Complex getCached(const std::complex<fp>& c);
-
-  /**
-   * @brief Get a complex number from the complex cache.
-   * @param c The complex number.
-   * @return The cached complex number.
-   * @see MemoryManager::get
-   */
-  [[nodiscard]] Complex getCached(const Complex& c);
-
-  /**
-   * @brief Return a complex number to the complex cache.
-   * @param c The complex number.
-   * @see MemoryManager::free
-   * @note This method takes care that it never returns a static complex number
-   * to the cache. This means it can be called with any complex number. The
-   * real and imaginary parts are returned in reverse order to improve cache
-   * locality.
-   */
-  void returnToCache(const Complex& c) noexcept;
-
-  /**
-   * @brief Get the number of cached numbers.
-   * @return The number of cached numbers.
-   */
-  [[nodiscard]] std::size_t cacheCount() const noexcept;
-
-  /**
    * @brief Get the number of stored real numbers.
    * @return The number of stored real numbers.
    */
@@ -334,7 +152,5 @@ public:
 private:
   /// A pointer to the unique table to use for calculations
   RealNumberUniqueTable* uniqueTable;
-  /// A pointer to the cache manager to use for calculations
-  MemoryManager<RealNumber>* cacheManager;
 };
 } // namespace dd
