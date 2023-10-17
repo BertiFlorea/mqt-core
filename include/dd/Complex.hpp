@@ -4,6 +4,8 @@
 
 #include <complex>
 #include <cstddef>
+#include <cstdint>
+#include <functional>
 #include <iostream>
 #include <string>
 #include <utility>
@@ -88,21 +90,72 @@ struct Complex {
   [[nodiscard]] bool operator!=(const Complex& other) const noexcept;
 
   /**
+   * @brief Get the closest fraction to the given number.
+   * @param x The number to approximate.
+   * @param maxDenominator The maximum denominator to use.
+   * @returns The closest fraction to the given number as a pair of numerator
+   * and denominator.
+   */
+  static std::pair<std::uint64_t, std::uint64_t>
+  getLowestFraction(fp x, std::uint64_t maxDenominator = 1U << 10);
+
+  /**
+   * @brief Pretty print the given real number to the given output stream.
+   * @param os The output stream to write to.
+   * @param num The number to print.
+   * @param imaginary Whether the number is imaginary.
+   */
+  static void printFormatted(std::ostream& os, fp num, bool imaginary = false);
+
+  /**
    * @brief Convert the complex number to a string.
    * @param formatted Whether to apply special formatting to the numbers.
    * @param precision The precision to use for the numbers.
    * @returns The string representation of the complex number.
-   * @see ComplexValue::toString
    */
   [[nodiscard]] std::string toString(bool formatted = true,
                                      int precision = -1) const;
 
   /**
+   * @brief Convert the complex number to a string.
+   * @param c The complex number to convert.
+   * @param formatted Whether to apply special formatting to the numbers.
+   * @param precision The precision to use for the numbers.
+   * @return The string representation of the complex number.
+   */
+  [[nodiscard]] static std::string toString(const std::complex<fp>& c,
+                                            bool formatted = true,
+                                            int precision = -1);
+
+  /**
+   * @brief Construct a complex number from a string.
+   * @param realStr The string representation of the real part.
+   * @param imagStr The string representation of the imaginary part.
+   * @param c The complex number to write into.
+   */
+  static void fromString(const std::string& realStr, std::string imagStr,
+                         std::complex<fp>& c);
+
+  /**
    * @brief Write the complex number to a binary stream.
    * @param os The output stream to write to.
-   * @see CTEntry::writeBinary
+   * @see RealNumber::writeBinary
    */
   void writeBinary(std::ostream& os) const;
+
+  /**
+   * @brief Write the complex number to a binary stream.
+   * @param c The complex number to write.
+   * @param os The output stream to write to.
+   */
+  static void writeBinary(const std::complex<fp>& c, std::ostream& os);
+
+  /**
+   * @brief Read the complex number from a binary stream.
+   * @param is The input stream to read from.
+   * @param c The complex number to read into.
+   */
+  static void readBinary(std::istream& is, std::complex<fp>& c);
 
   /**
    * @brief Convert the Complex number to an std::complex<fp>.
