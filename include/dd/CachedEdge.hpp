@@ -1,17 +1,14 @@
 #pragma once
 
+#include "dd/Complex.hpp"
 #include "dd/DDDefinitions.hpp"
+#include "dd/RealNumber.hpp"
 
 #include <complex>
 #include <cstddef>
 #include <functional>
 
 namespace dd {
-
-///-----------------------------------------------------------------------------
-///                        \n Forward declarations \n
-///-----------------------------------------------------------------------------
-struct Complex;
 
 /**
  * @brief A DD node with a cached edge weight
@@ -34,6 +31,28 @@ template <typename Node> struct CachedEdge {
   /// counter floating point inaccuracies
   bool operator==(const CachedEdge& other) const;
   bool operator!=(const CachedEdge& other) const { return !operator==(other); }
+
+  /**
+   * @brief Create a terminal edge with the given weight.
+   * @param w The weight of the terminal edge.
+   * @return A terminal edge with the given weight.
+   */
+  [[nodiscard]] static constexpr CachedEdge
+  terminal(const std::complex<fp>& w) {
+    return CachedEdge{Node::getTerminal(), w};
+  }
+
+  /**
+   * @brief Create a terminal edge with the given weight.
+   * @param w The weight of the terminal edge.
+   * @return A terminal edge with the given weight.
+   */
+  [[nodiscard]] static constexpr CachedEdge terminal(const Complex& w) {
+    return terminal(static_cast<std::complex<fp>>(w));
+  }
+
+  [[nodiscard]] static constexpr CachedEdge zero() { return terminal(0.); }
+  [[nodiscard]] static constexpr CachedEdge one() { return terminal(1.); }
 };
 
 } // namespace dd
@@ -56,6 +75,14 @@ template <class Node> struct hash<dd::CachedEdge<Node>> {
    * numbers that are within the tolerance of the complex table will always
    * produce the same hash value.
    */
-  std::size_t operator()(dd::CachedEdge<Node> const& e) const noexcept;
+  constexpr std::size_t
+  operator()(dd::CachedEdge<Node> const& e) const noexcept {
+    const auto h1 = dd::murmur64(reinterpret_cast<std::size_t>(e.p));
+    const auto h2 = dd::murmur64(
+        static_cast<std::size_t>(std::round(e.w.real() / dd::RealNumber::eps)));
+    const auto h3 = dd::murmur64(
+        static_cast<std::size_t>(std::round(e.w.imag() / dd::RealNumber::eps)));
+    return dd::combineHash(h1, dd::combineHash(h2, h3));
+  }
 };
 } // namespace std
