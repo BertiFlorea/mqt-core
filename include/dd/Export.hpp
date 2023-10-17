@@ -4,10 +4,11 @@
 #include "dd/ComplexNumbers.hpp"
 #include "dd/DDDefinitions.hpp"
 #include "dd/Edge.hpp"
-#include "dd/Package.hpp"
+#include "dd/Node.hpp"
+#include "dd/RealNumber.hpp"
 
 #include <algorithm>
-#include <array>
+#include <cmath>
 #include <cstdint>
 #include <cstdlib>
 #include <fstream>
@@ -15,6 +16,7 @@
 #include <iostream>
 #include <limits>
 #include <queue>
+#include <sstream>
 #include <stack>
 #include <stdexcept>
 #include <string>
@@ -47,7 +49,7 @@ static void printPhaseFormatted(std::ostream& os, fp r) {
   os << "ℯ(" << (std::signbit(r) ? "-" : "") << "iπ";
 
   const auto absr = std::abs(r);
-  auto fraction = ComplexValue::getLowestFraction(absr);
+  auto fraction = Complex::getLowestFraction(absr);
   auto approx =
       static_cast<fp>(fraction.first) / static_cast<fp>(fraction.second);
   auto error = std::abs(absr - approx);
@@ -66,7 +68,7 @@ static void printPhaseFormatted(std::ostream& os, fp r) {
   }
 
   auto abssqrt = absr / SQRT2_2;
-  fraction = ComplexValue::getLowestFraction(abssqrt);
+  fraction = Complex::getLowestFraction(abssqrt);
   approx = static_cast<fp>(fraction.first) / static_cast<fp>(fraction.second);
   error = std::abs(abssqrt - approx);
 
@@ -84,7 +86,7 @@ static void printPhaseFormatted(std::ostream& os, fp r) {
   }
 
   auto abspi = absr / PI;
-  fraction = ComplexValue::getLowestFraction(abspi);
+  fraction = Complex::getLowestFraction(abspi);
   approx = static_cast<fp>(fraction.first) / static_cast<fp>(fraction.second);
   error = std::abs(abspi - approx);
 
@@ -139,15 +141,15 @@ inline std::string conditionalFormat(const Complex& a,
 
   if (RealNumber::approximatelyEquals(std::abs(phase), dd::PI)) {
     ss << "-";
-    dd::ComplexValue::printFormatted(ss, mag);
+    dd::Complex::printFormatted(ss, mag);
     return ss.str();
   }
   if (RealNumber::approximatelyZero(phase)) {
-    dd::ComplexValue::printFormatted(ss, mag);
+    dd::Complex::printFormatted(ss, mag);
     return ss.str();
   }
 
-  dd::ComplexValue::printFormatted(ss, mag);
+  dd::Complex::printFormatted(ss, mag);
   ss << " ";
   printPhaseFormatted(ss, phase);
 
