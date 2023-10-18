@@ -211,6 +211,7 @@ template <typename Node>
   if (noRefCountingNeeded(p)) {
     return false;
   }
+  assert(p != nullptr);
   ++p->ref;
   return true;
 }
@@ -231,7 +232,7 @@ template <typename Node>
   if (noRefCountingNeeded(p)) {
     return false;
   }
-  assert(p->ref != 0 &&
+  assert(p != nullptr && p->ref != 0 &&
          "Reference count of Node must not be zero before decrement");
   --p->ref;
   return true;
