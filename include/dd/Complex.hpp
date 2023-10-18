@@ -77,6 +77,14 @@ struct Complex {
   [[nodiscard]] bool approximatelyEquals(const Complex& c) const noexcept;
 
   /**
+   * @brief Check whether two complex numbers are approximately equal
+   * @param c1 The first complex number
+   * @param c2 The second complex number
+   * @return True if the complex numbers are approximately equal, false otherwise.
+   */
+  [[nodiscard]] static bool approxiximatelyEquals(const std::complex<fp>& c1, const std::complex<fp>& c2) noexcept;
+
+  /**
    * @brief Check whether the complex number is approximately equal to zero.
    * @returns True if the complex number is approximately equal to zero, false
    * otherwise.

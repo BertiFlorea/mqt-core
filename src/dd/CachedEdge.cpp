@@ -12,7 +12,7 @@ CachedEdge<Node>::CachedEdge(Node* n, const Complex& c)
 
 template <typename Node>
 bool CachedEdge<Node>::operator==(const CachedEdge& other) const {
-  return p == other.p && std::abs(w - other.w) < RealNumber::eps;
+  return p == other.p && Complex::approxiximatelyEquals(w, other.w);
 }
 
 template struct CachedEdge<vNode>;

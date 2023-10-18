@@ -28,6 +28,12 @@ bool Complex::approximatelyEquals(const Complex& c) const noexcept {
          RealNumber::approximatelyEquals(i, c.i);
 }
 
+bool Complex::approxiximatelyEquals(const std::complex<fp>& c1,
+                                    const std::complex<fp>& c2) noexcept {
+  return RealNumber::approximatelyEquals(c1.real(), c2.real()) &&
+         RealNumber::approximatelyEquals(c1.imag(), c2.imag());
+}
+
 bool Complex::approximatelyZero() const noexcept {
   return RealNumber::approximatelyZero(r) && RealNumber::approximatelyZero(i);
 }
