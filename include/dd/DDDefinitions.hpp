@@ -117,7 +117,7 @@ using TwoQubitGateMatrix =
 intToBinaryString(const std::size_t value, const std::size_t nbits) {
   std::string binary(nbits, '0');
   for (std::size_t j = 0; j < nbits; ++j) {
-    if ((value & (1U << j)) != 0U) {
+    if ((value & (1ULL << j)) != 0U) {
       binary[nbits - 1 - j] = '1';
     }
   }
